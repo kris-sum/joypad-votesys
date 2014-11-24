@@ -90,12 +90,12 @@ class Joypadui:
         
         self.bg = self.c.create_image(self.canvas_width/2,self.canvas_height/2,image=self.photoBG)
 
-        self.textHeadingA = self.c.create_text(self.canvas_width/4, 100, text="Game A", font=self.font_header2, fill="white")
-        self.textHeadingB = self.c.create_text(self.canvas_width/4*3, 100, text="Game B", font=self.font_header2, fill="white")
-        self.textTeamAscore = self.c.create_text(self.canvas_width/4, self.canvas_height - 150, text="0", font=self.font_header, fill="white")
-        self.textTeamBscore = self.c.create_text(self.canvas_width/4*3, self.canvas_height - 150, text="0", font=self.font_header, fill="white")
+        self.textHeadingA = self.c.create_text(self.canvas_width/4, 125, text="Game A", font=self.font_header2, fill="white", anchor="n", justify="center")
+        self.textHeadingB = self.c.create_text(self.canvas_width/4*3, 125, text="Game B", font=self.font_header2, fill="white", anchor="n", justify="center")
+        self.textTeamAscore = self.c.create_text(self.canvas_width/4, self.canvas_height - 150, text="0", font=self.font_header, fill="white", justify="center")
+        self.textTeamBscore = self.c.create_text(self.canvas_width/4*3, self.canvas_height - 150, text="0", font=self.font_header, fill="white", justify="center")
 
-        self.textTimer = self.c.create_text(self.canvas_width/2, 100, text="COUNTDOWN", font=self.font_header, fill="green")
+        self.textTimer = self.c.create_text(self.canvas_width/2, 75, text="COUNTDOWN", font=self.font_header, fill="green", justify="center")
 
         self.status = 1;
         self.loadVote(self.currentVoteId - 1)
@@ -116,6 +116,10 @@ class Joypadui:
 
         # repaint background (we could've come from a winning / sudden death screen)
         self.c.itemconfig(self.bg, image= self.photoBG)
+
+        # headings
+        self.c.itemconfig(self.textHeadingA, text=self.voteConfig[index]['heading_a'])
+        self.c.itemconfig(self.textHeadingB, text=self.voteConfig[index]['heading_b'])
 
         # delete old gifs
         if (hasattr(self,'gif_a')):

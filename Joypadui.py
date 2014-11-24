@@ -108,45 +108,51 @@ class Joypadui:
         
     def loadVote(self, index):
 
+        if (index >= len(self.voteConfig)):
+            print "No more votes to load. Going to final screen."
+            self.finalScreen()
+
         print "Loading vote (index "+str(index)+")"
 
         # repaint background (we could've come from a winning / sudden death screen)
         self.c.itemconfig(self.bg, image= self.photoBG)
 
+        # delete old gifs
+        if (hasattr(self,'gif_a')):
+            del self.gif_a        
+        if (hasattr(self,'gif_b')):
+            del self.gif_b
+            
         # gif support
         if self.voteConfig[index]['media_a'].endswith('.gif'):
-            if (hasattr(self,'gif1')):
-                del self.gif1
-            self.gif1 = anim_gif(self.voteConfig[index]['media_a'])
-            if (not hasattr(self,'imageGame1')):
-                self.imageGame1 = self.c.create_image(self.canvas_width/4,self.canvas_height/2,image=None)
-            self.animate1()
+            self.gif_a = anim_gif(self.voteConfig[index]['media_a'])
+            if (not hasattr(self,'imageGameA')):
+                self.imageGameA = self.c.create_image(self.canvas_width/4,self.canvas_height/2,image=None)
+            self.animate('a')
                
         if self.voteConfig[index]['media_b'].endswith('.gif'):
-            if (hasattr(self,'gif2')):
-                del self.gif2
-            self.gif2 = anim_gif(self.voteConfig[index]['media_b'])
-            if (not hasattr(self,'imageGame2')):
-                self.imageGame2 = self.c.create_image(self.canvas_width/4*3,self.canvas_height/2,image=None)
-            self.animate2()
+            self.gif_b = anim_gif(self.voteConfig[index]['media_b'])
+            if (not hasattr(self,'imageGameB')):
+                self.imageGameB = self.c.create_image(self.canvas_width/4*3,self.canvas_height/2,image=None)
+            self.animate('b')
 
         #jpg support
         if self.voteConfig[index]['media_a'].endswith('.jpg'):
             self.photo_a = Image.open(self.voteConfig[index]['media_a'])
             self.photo_aa = ImageTk.PhotoImage(self.photo_a);
-            if (not hasattr(self,'imageGame1')):
-                self.imageGame1 = self.c.create_image(self.canvas_width/4,self.canvas_height/2,image=self.photo_aa)
+            if (not hasattr(self,'imageGameA')):
+                self.imageGameA = self.c.create_image(self.canvas_width/4,self.canvas_height/2,image=self.photo_aa)
             else:
-                self.c.itemconfig(self.imageGame1, image=self.photo_aa)
+                self.c.itemconfig(self.imageGameA, image=self.photo_aa)
             
         if self.voteConfig[index]['media_b'].endswith('.jpg'):
             self.photo_b = Image.open(self.voteConfig[index]['media_b'])
             self.photo_bb = ImageTk.PhotoImage(self.photo_b)
-            if (not hasattr(self,'imageGame2')):
-                self.imageGame2 = self.c.create_image(self.canvas_width/4*3,self.canvas_height/2,image=self.photo_bb)
+            if (not hasattr(self,'imageGameB')):
+                self.imageGameB = self.c.create_image(self.canvas_width/4*3,self.canvas_height/2,image=self.photo_bb)
             else:
-                self.c.itemconfig(self.imageGame2, image=self.photo_bb)
-
+                self.c.itemconfig(self.imageGameB, image=self.photo_bb)
+        
     def countdownTimer(self):
         if (self.timeRemaining <= 0):
             self.timerReached();
@@ -205,6 +211,10 @@ class Joypadui:
         self.loadVote(self.currentVoteId - 1)
         self.countdownTimer()
 
+    def finalScreen(self):
+        print "Exiting"
+        sys.exit();
+
     def updateUI(self):
         'update the UI to display scores every 200ms'
         # vote is running
@@ -216,29 +226,29 @@ class Joypadui:
         if (self.status == 3):
                 self.c.itemconfig(self.textTimer, text= 'SUDDEN DEATH', fill='red');
         
-        self.root.after(200,self.updateUI)
+        self.root.after(250,self.updateUI)
         
-    def animate1(self):
-        
-        self.c.itemconfig(self.imageGame1, image= self.gif1['frames'][self.gif1['loc']])
-        self.gif1['loc'] += 1
-        if self.gif1['loc'] == self.gif1['len']:
-            self.gif1['loc'] = 0
-        if (self.status in [1,2,3]):
-            self.root.after(self.gif1["delays"][self.gif1['loc']] - 10, self.animate1)
-        
-    def animate2(self):
-        
-        self.c.itemconfig(self.imageGame2, image= self.gif2['frames'][self.gif2['loc']])
-        self.gif2['loc'] += 1
-        if self.gif2['loc'] == self.gif2['len']:
-            self.gif2['loc'] = 0
-        if (self.status in [1,2,3]):
-            self.root.after(self.gif2["delays"][self.gif2['loc']] - 10, self.animate2)
+    def animate(self, target):
+        if (target=='a'):
+            if hasattr(self,'gif_a'):
+                self.c.itemconfig(self.imageGameA, image= self.gif_a['frames'][self.gif_a['loc']])
+                self.gif_a['loc'] += 1
+                if self.gif_a['loc'] == self.gif_a['len']:
+                    self.gif_a['loc'] = 0
+                if (self.status in [1,2,3]):
+                    self.root.after(self.gif_a["delays"][self.gif_a['loc']] - 10, self.animate,'a')
+        elif (target=='b'):
+            if hasattr(self,'gif_b'):
+                self.c.itemconfig(self.imageGameB, image= self.gif_b['frames'][self.gif_b['loc']])
+                self.gif_b['loc'] += 1
+                if self.gif_b['loc'] == self.gif_b['len']:
+                    self.gif_b['loc'] = 0
+                if (self.status in [1,2,3]):
+                    self.root.after(self.gif_b["delays"][self.gif_b['loc']] - 10, self.animate,'b')
 
         
 #
-# other utility functinos
+# other utility functions
 #
 
 # anim_gif

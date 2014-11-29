@@ -8,18 +8,40 @@ import os
 
 class Joypadui:
     'UI controller for joypad voting system'
+
     
+    timerPrevote = 10
+
     # count down timer - change this value if you want
     timerSeconds = 10
+
+    
     # how long to spend on the vote result screen
     timeOnVoteResults = 10
 
-    # internal status, 0 = initialising, 1 = running a vote, 2 = displaying vote results,
+    # internal status,
+    #   0 = initialising
+    #   1 = vote is pending
+    #   2 = vote is active
     #   3 = sudden death mode (next vote wins!)
-    # animations only run in state 1 or 2
-    status = 0    
+    #   4 = displaying vote results
+    # animations only run in states 1,2,3,4
+    status = 0
+
+    status_for_animations = [1,2,3,4]
     
     heading_top = 125
+    
+    def STATUS_VOTE_PENDING(self):
+        return 1
+    def STATUS_VOTE_ACTIVE(self):
+        return 2    
+    def STATUS_SUDDEN_DEATH(self):
+        return 3
+    def STATUS_VOTE_RESULTS(self):
+        return 4
+    
+    
 
     # init using the root Tk() instance and the Joypadio library
     def __init__(self, root, io):
@@ -32,6 +54,8 @@ class Joypadui:
         self.canvas_width   = root.winfo_screenwidth()
         self.font_header    = tkFont.Font(family="Helvetica", size=100, weight="bold")
         self.font_header2   = tkFont.Font(family="Helvetica", size=50, weight="bold")
+        self.font_timer_pending = tkFont.Font(family="Helvetica", size=30, weight="normal")
+
         #vote control
         self.currentVoteId  = 1
         self.voteConfig     = []
@@ -113,7 +137,7 @@ class Joypadui:
         self.c.tag_bind(self.textTeamBscore,'<Button-2>', lambda event: self.registerVote(event,'-b'));
         self.c.tag_bind(self.textTeamBscore,'<Button-3>', lambda event: self.registerVote(event,'-b'));
 
-        self.status = 1;
+        self.status = self.STATUS_VOTE_PENDING()
         self.loadVote(self.currentVoteId - 1)
 
         # start the GUI update routines
@@ -185,8 +209,7 @@ class Joypadui:
                 self.c.itemconfig(self.imageGameB, image=self.photo_bb)
         
         # reset hidden/shown states, position
-        self.c.itemconfig(self.textTeamAscore, state=NORMAL)
-        self.c.itemconfig(self.textTeamBscore, state=NORMAL)
+        
         self.c.itemconfig(self.textHeadingA, state=NORMAL)
         self.c.itemconfig(self.textHeadingB, state=NORMAL)
         self.c.itemconfig(self.textTimer, state=NORMAL)
@@ -198,49 +221,74 @@ class Joypadui:
         if (hasattr(self,'imageGameB')): 
             self.c.itemconfig(self.imageGameB, state=NORMAL)
             self.c.coords(self.imageGameB, self.canvas_width/4*3, self.canvas_height/2)
-                    
+
+        self.c.itemconfig(self.textTeamAscore, state=HIDDEN)
+        self.c.itemconfig(self.textTeamBscore, state=HIDDEN)
+
+    def openVote(self):
+        # have to reset the score, as people were probably pushing buttons ... 
+        self.io.scoreA = 0
+        self.io.scoreB = 0
+        self.c.itemconfig(self.textTeamAscore, state=NORMAL)
+        self.c.itemconfig(self.textTeamBscore, state=NORMAL)
+        self.status=self.STATUS_VOTE_ACTIVE()
+        self.resetCountdownTimer(self.timerSeconds)
+        self.countdownTimer()
         
     def countdownTimer(self):
         if (self.timeRemaining <= 0):
             self.timerReached();
         else:
-            self.timeRemaining = self.timeRemaining - 1;
+            self.timeRemaining -= 1;
             self.root.after(1000,self.countdownTimer);
 
-    def resetCountdownTimer(self):
-        self.timeRemaining = self.timerSeconds
+    def resetCountdownTimer(self, time):
+        if (time != None):
+            self.timeRemaining = time
+        else:
+            self.timeRemaining = self.timerSeconds
 
     def timerReached(self):
-        if (self.status==1):
+        if (self.status==self.STATUS_VOTE_PENDING()):
+            print '=========================='
+            print ' Opening voting for ' +  str(self.timeRemaining) + ' seconds for ' + str(self.currentVoteId);
+            print '=========================='
+            self.openVote();
+            return
+            
+        if (self.status==self.STATUS_VOTE_ACTIVE()):
             print '=========================='
             print ' Timer reached for vote ' + str(self.currentVoteId);
             print '=========================='
             print 'Team A: '+str(self.io.scoreA)+' votes for ' + self.voteConfig[self.currentVoteId-1]['heading_a'];
             print 'Team B: '+str(self.io.scoreB)+' votes for ' + self.voteConfig[self.currentVoteId-1]['heading_b'];
 
-        if (self.status==1 or self.status==3):
+        if (self.status==self.STATUS_VOTE_ACTIVE() or self.status==self.STATUS_SUDDEN_DEATH()):
                 
             if (self.io.scoreA == self.io.scoreB):
-                if (self.status != 3):
+                if (self.status != self.STATUS_SUDDEN_DEATH()):
                     print "Entering SUDDEN DEATH mode"
                 self.suddenDeathMode()
+                return
             elif (self.io.scoreA > self.io.scoreB):
                 print " ** Team A wins by " + str(self.io.scoreA-self.io.scoreB) +" votes **";
                 print " ** "+ self.voteConfig[self.currentVoteId-1]['heading_a']+ " **";
-                self.announceWinner('a');
+                self.announceWinner('a')
+                return
             else:
                 print " ** Team B wins by " + str(self.io.scoreB-self.io.scoreA) +" votes **";
                 print " ** "+ self.voteConfig[self.currentVoteId-1]['heading_b']+ " **";
                 self.announceWinner('b')
+                return
 
         
 
     def suddenDeathMode(self):
-        self.status = 3
+        self.status = self.STATUS_SUDDEN_DEATH()
         self.root.after(100,self.timerReached);
 
     def announceWinner(self,team):
-        self.status = 2
+        self.status = self.STATUS_VOTE_RESULTS()
         if (team=='-'):
             if (self.displayTimeout <= 0):
                 self.resetAndLoadNextVote()
@@ -268,8 +316,8 @@ class Joypadui:
         self.root.after(1000, self.announceWinner, '-');
 
     def resetVote(self):
-        self.status = 1
-        self.resetCountdownTimer()
+        self.status = self.STATUS_VOTE_PENDING()
+        self.resetCountdownTimer(self.timerPrevote)
         self.io.scoreA = 0
         self.io.scoreB = 0
 
@@ -285,14 +333,18 @@ class Joypadui:
 
     def updateUI(self):
         'update the UI to display scores every 200ms'
+
+        if (self.status == self.STATUS_VOTE_PENDING()):
+            self.c.itemconfig(self.textTimer, text= 'Vote opens in ' + str(self.timeRemaining) + ' secs', fill='white', font=self.font_timer_pending);
+         
         # vote is running
-        if (self.status == 1):
+        if (self.status == self.STATUS_VOTE_ACTIVE()):
             self.c.itemconfig(self.textTeamAscore, text = self.io.scoreA)
             self.c.itemconfig(self.textTeamBscore, text = self.io.scoreB)
-            self.c.itemconfig(self.textTimer, text= self.timeRemaining, fill='green');
+            self.c.itemconfig(self.textTimer, text= self.timeRemaining, fill='green', font=self.font_header);
         # sudden death mode
-        if (self.status == 3):
-                self.c.itemconfig(self.textTimer, text= 'SUDDEN DEATH', fill='red');
+        if (self.status == self.STATUS_SUDDEN_DEATH()):
+                self.c.itemconfig(self.textTimer, text= 'SUDDEN DEATH', fill='red', font=self.font_header);
         
         self.root.after(250,self.updateUI)
         
@@ -303,7 +355,7 @@ class Joypadui:
                 self.gif_a['loc'] += 1
                 if self.gif_a['loc'] == self.gif_a['len']:
                     self.gif_a['loc'] = 0
-                if (self.status in [1,2,3]):
+                if (self.status in self.status_for_animations):
                     self.root.after(self.gif_a["delays"][self.gif_a['loc']] - 10, self.animate,'a')
         elif (target=='b'):
             if hasattr(self,'gif_b'):
@@ -311,7 +363,7 @@ class Joypadui:
                 self.gif_b['loc'] += 1
                 if self.gif_b['loc'] == self.gif_b['len']:
                     self.gif_b['loc'] = 0
-                if (self.status in [1,2,3]):
+                if (self.status in self.status_for_animations):
                     self.root.after(self.gif_b["delays"][self.gif_b['loc']] - 10, self.animate,'b')
 
         

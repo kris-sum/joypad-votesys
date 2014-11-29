@@ -5,19 +5,28 @@ import tkFont
 import sys
 import pprint
 import os
+from pygame import mixer
 
 class Joypadui:
     'UI controller for joypad voting system'
 
-    
+    # how long to stay on the pre-voting screen
     timerPrevote = 10
 
-    # count down timer - change this value if you want
+    # how long to keep the vote open for
     timerSeconds = 10
-
     
     # how long to spend on the vote result screen
     timeOnVoteResults = 10
+    
+    heading_top = 125
+    
+    sound_vote_open             = 'resources/vote_open.wav'
+    sound_vote_sudden_death     = 'resources/vote_sudden_death.wav'
+    sound_win_team_a            = 'resources/win_team_a.wav'
+    sound_win_team_b            = 'resources/win_team_b.wav'
+
+    # --- no modifications to be made below this line please --
 
     # internal status,
     #   0 = initialising
@@ -27,10 +36,7 @@ class Joypadui:
     #   4 = displaying vote results
     # animations only run in states 1,2,3,4
     status = 0
-
     status_for_animations = [1,2,3,4]
-    
-    heading_top = 125
     
     def STATUS_VOTE_PENDING(self):
         return 1
@@ -40,26 +46,27 @@ class Joypadui:
         return 3
     def STATUS_VOTE_RESULTS(self):
         return 4
-    
-    
 
     # init using the root Tk() instance and the Joypadio library
     def __init__(self, root, io):
-        print 'JoypadUI v1.0 initialising'
-        self.root = root
-        self.io = io
-        self.timeRemaining  = self.timerSeconds
-        self.displayTimeout = self.timeOnVoteResults
-        self.canvas_height  = root.winfo_screenheight() - 40 
-        self.canvas_width   = root.winfo_screenwidth()
-        self.font_header    = tkFont.Font(family="Helvetica", size=100, weight="bold")
-        self.font_header2   = tkFont.Font(family="Helvetica", size=50, weight="bold")
+        print 'JoypadUI v1.1 initialising'
+        self.root   = root
+        self.io     = io
+        self.timeRemaining      = self.timerSeconds
+        self.displayTimeout     = self.timeOnVoteResults
+        self.canvas_height      = root.winfo_screenheight() - 40 
+        self.canvas_width       = root.winfo_screenwidth()
+        self.font_header        = tkFont.Font(family="Helvetica", size=100, weight="bold")
+        self.font_header2       = tkFont.Font(family="Helvetica", size=50, weight="bold")
         self.font_timer_pending = tkFont.Font(family="Helvetica", size=30, weight="normal")
 
         #vote control
         self.currentVoteId  = 1
         self.voteConfig     = []
         self.initFilesystem()
+        # audio support
+        mixer.init()
+        
    
     # find files from the filesystem that will configure the vote system
     # file structure should be as follows:
@@ -234,6 +241,13 @@ class Joypadui:
         self.status=self.STATUS_VOTE_ACTIVE()
         self.resetCountdownTimer(self.timerSeconds)
         self.countdownTimer()
+        #play sound
+        try:
+            sound = mixer.Sound(self.sound_vote_open)
+            sound.play()
+        except:
+            print "unable to play sound " + self.sound_vote_open;
+        
         
     def countdownTimer(self):
         if (self.timeRemaining <= 0):
@@ -250,10 +264,8 @@ class Joypadui:
 
     def timerReached(self):
         if (self.status==self.STATUS_VOTE_PENDING()):
-            print '=========================='
-            print ' Opening voting for ' +  str(self.timeRemaining) + ' seconds for ' + str(self.currentVoteId);
-            print '=========================='
             self.openVote();
+            print 'Opening voting for ' +  str(self.timeRemaining) + ' seconds for vote #' + str(self.currentVoteId);
             return
             
         if (self.status==self.STATUS_VOTE_ACTIVE()):
@@ -268,6 +280,12 @@ class Joypadui:
             if (self.io.scoreA == self.io.scoreB):
                 if (self.status != self.STATUS_SUDDEN_DEATH()):
                     print "Entering SUDDEN DEATH mode"
+                    #play sound
+                    try:
+                        sound = mixer.Sound(self.sound_vote_sudden_death)
+                        sound.play()
+                    except:
+                        print "unable to play sound " + self.sound_vote_sudden_death;
                 self.suddenDeathMode()
                 return
             elif (self.io.scoreA > self.io.scoreB):
@@ -300,6 +318,12 @@ class Joypadui:
             self.c.coords(self.textHeadingA, self.canvas_width/2,self.heading_top)
             self.c.itemconfig(self.imageGameB, state=HIDDEN)
             self.c.itemconfig(self.textHeadingB, state=HIDDEN)
+            #play sound
+            try:
+                sound = mixer.Sound(self.sound_win_team_a)
+                sound.play()
+            except:
+                print "unable to play sound " + self.sound_win_team_a;
         if (team=='b'):
             self.c.itemconfig(self.bg, image=self.photoBG_win_b)
             self.displayTimeout = self.timeOnVoteResults      
@@ -307,6 +331,12 @@ class Joypadui:
             self.c.coords(self.textHeadingB, self.canvas_width/2,self.heading_top)
             self.c.itemconfig(self.imageGameA, state=HIDDEN)
             self.c.itemconfig(self.textHeadingA, state=HIDDEN)
+            #play sound
+            try:
+                sound = mixer.Sound(self.sound_win_team_b)
+                sound.play()
+            except:
+                print "unable to play sound " + self.sound_win_team_b;            
         if (team == 'a' or team == 'b'):
             self.c.itemconfig(self.textTeamAscore, state=HIDDEN)
             self.c.itemconfig(self.textTeamBscore, state=HIDDEN)

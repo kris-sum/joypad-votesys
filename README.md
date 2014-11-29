@@ -5,6 +5,14 @@ Joypad (http://www.joypadbar.co.uk) voting system.
 
 This is python code for running a voting booth, which is powered by a Raspberry Pi and using its GPIO functions.
 
+PreRequisites:
+apt-get the following:
+```
+python-tkinter python-imaging python-imaging-tk
+```
+
+HW should have GPIO inputs pulled down, we detect on rising edge.
+
 Execute with : 
 ```
 sudo python run.py

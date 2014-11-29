@@ -15,8 +15,8 @@ class Joypadio:
         GPIO.setwarnings(False) 
         GPIO.cleanup()
 
-        GPIO.setup(self.GPIOteamA, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.GPIOteamB, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.GPIOteamA, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.GPIOteamB, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
         self.scoreA = 0
         self.scoreB = 0
@@ -38,6 +38,6 @@ class Joypadio:
 """
 In your code, implement the following
 
-   GPIO.add_event_detect(Joypadio.GPIOteamA, GPIO.FALLING, callback=JoypadioObject.registerVote, bouncetime=500)
-   GPIO.add_event_detect(Joypadio.GPIOteamB, GPIO.FALLING, callback=JoypadioObject.registerVote, bouncetime=500)
+   GPIO.add_event_detect(Joypadio.GPIOteamA, GPIO.RISING, callback=JoypadioObject.registerVote, bouncetime=200)
+   GPIO.add_event_detect(Joypadio.GPIOteamB, GPIO.RISING, callback=JoypadioObject.registerVote, bouncetime=200)
 """

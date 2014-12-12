@@ -52,7 +52,7 @@ class Joypadui:
         print 'JoypadUI v1.1 initialising'
         self.root   = root
         self.io     = io
-        self.timeRemaining      = self.timerSeconds
+        self.timeRemaining      = self.timerPrevote
         self.displayTimeout     = self.timeOnVoteResults
         self.canvas_height      = root.winfo_screenheight() - 40 
         self.canvas_width       = root.winfo_screenwidth()

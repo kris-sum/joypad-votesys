@@ -80,7 +80,7 @@ class Joypadui:
     #
     def initFilesystem(self):
         print 'Looking for vote files ...'
-        for i in xrange(1,16,1):
+        for i in xrange(1,32,1):
             voteEntity = {
                 'voteId'         : i,
                 'media_a'       : None,

@@ -1,14 +1,14 @@
 joypad-votesys
 ==============
 
-Joypad (http://www.joypadbar.co.uk) voting system.
+Joypad (http://www.joypadbar.co.uk) voting system, for VideoGameDemocracy : https://www.youtube.com/watch?v=jbLW-RlVprc
 
 This is python code for running a voting booth, which is powered by a Raspberry Pi and using its GPIO functions.
 
 PreRequisites:
 apt-get the following:
 ```
-python-tkinter python-imaging python-imaging-tk
+python-tkinter python-imaging python-imaging-tk python-pygame
 ```
 
 HW should have GPIO inputs pulled down, we detect on rising edge.

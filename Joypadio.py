@@ -1,7 +1,6 @@
 import os
 import time
 import RPi.GPIO as GPIO
-from pygame import mixer
 
 class JoypadioEvent(object):
     pass

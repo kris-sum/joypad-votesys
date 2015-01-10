@@ -11,13 +11,13 @@ class Joypadui:
     'UI controller for joypad voting system'
 
     # how long to stay on the pre-voting screen
-    timerPrevote = 10
+    timerPrevote = 1
 
     # how long to keep the vote open for
-    timerSeconds = 10
+    timerSeconds = 15
     
     # how long to spend on the vote result screen
-    timeOnVoteResults = 10
+    timeOnVoteResults = 13
     
     heading_top = 125
     
@@ -25,6 +25,8 @@ class Joypadui:
     sound_vote_sudden_death     = 'resources/vote_sudden_death.wav'
     sound_win_team_a            = 'resources/win_team_a.wav'
     sound_win_team_b            = 'resources/win_team_b.wav'
+    sound_vote_press_a          = 'resources/vote_press_a.wav'
+    sound_vote_press_b          = 'resources/vote_press_b.wav'
 
     # --- no modifications to be made below this line please --
 
@@ -52,6 +54,8 @@ class Joypadui:
         print 'JoypadUI v1.1 initialising'
         self.root   = root
         self.io     = io
+        self.io.subscribe(self.registerVote);
+        
         self.timeRemaining      = self.timerPrevote
         self.displayTimeout     = self.timeOnVoteResults
         self.canvas_height      = root.winfo_screenheight() - 40 
@@ -59,6 +63,7 @@ class Joypadui:
         self.font_header        = tkFont.Font(family="Helvetica", size=100, weight="bold")
         self.font_header2       = tkFont.Font(family="Helvetica", size=50, weight="bold")
         self.font_timer_pending = tkFont.Font(family="Helvetica", size=30, weight="normal")
+
 
         #vote control
         self.currentVoteId  = 1
@@ -118,16 +123,16 @@ class Joypadui:
 
         # make everything centered, that way we can deal with different resolutions easier insetad of
         # anchoring everything to the top left
-        self.imageBG = Image.open( "resources/bg.jpg")
+        self.imageBG = Image.open( "resources/bg_pending.jpg")
         self.photoBG = ImageTk.PhotoImage(self.imageBG)
+        self.bg = self.c.create_image(self.canvas_width/2,self.canvas_height/2,image=self.photoBG)
 
         self.imageBG_win_a = Image.open( "resources/bg_win_a.jpg")
         self.photoBG_win_a = ImageTk.PhotoImage(self.imageBG_win_a)
         self.imageBG_win_b = Image.open( "resources/bg_win_b.jpg")
         self.photoBG_win_b = ImageTk.PhotoImage(self.imageBG_win_b)
         
-        self.bg = self.c.create_image(self.canvas_width/2,self.canvas_height/2,image=self.photoBG)
-
+  
         self.textHeadingA = self.c.create_text(self.canvas_width/4, self.heading_top, text="Game A", font=self.font_header2, fill="white", anchor="n", justify="center")
         self.textHeadingB = self.c.create_text(self.canvas_width/4*3, self.heading_top, text="Game B", font=self.font_header2, fill="white", anchor="n", justify="center")
         self.textTeamAscore = self.c.create_text(self.canvas_width/4, self.canvas_height - 150, text="0", font=self.font_header, fill="white", justify="center")
@@ -172,7 +177,9 @@ class Joypadui:
 
         print "Loading vote (index "+str(index)+")"
 
-        # repaint background (we could've come from a winning / sudden death screen)
+        # Set background to bg_pending
+        self.imageBG = Image.open( "resources/bg_pending.jpg")
+        self.photoBG = ImageTk.PhotoImage(self.imageBG)
         self.c.itemconfig(self.bg, image= self.photoBG)
 
         # headings
@@ -233,6 +240,11 @@ class Joypadui:
         self.c.itemconfig(self.textTeamBscore, state=HIDDEN)
 
     def openVote(self):
+        # set background to load bg_active
+        self.imageBG = Image.open( "resources/bg_active.jpg")
+        self.photoBG = ImageTk.PhotoImage(self.imageBG)
+        self.c.itemconfig(self.bg, image= self.photoBG)
+        
         # have to reset the score, as people were probably pushing buttons ... 
         self.io.scoreA = 0
         self.io.scoreB = 0
@@ -309,6 +321,7 @@ class Joypadui:
         self.status = self.STATUS_VOTE_RESULTS()
         if (team=='-'):
             if (self.displayTimeout <= 0):
+                # announcement should finish now, so load next vote
                 self.resetAndLoadNextVote()
                 return
         if (team=='a'):
@@ -342,6 +355,7 @@ class Joypadui:
             self.c.itemconfig(self.textTeamBscore, state=HIDDEN)
             self.c.itemconfig(self.textTimer, state=HIDDEN)
             
+        # decerment the timer and run this function again after 1 second
         self.displayTimeout -= 1
         self.root.after(1000, self.announceWinner, '-');
 
@@ -396,6 +410,24 @@ class Joypadui:
                 if (self.status in self.status_for_animations):
                     self.root.after(self.gif_b["delays"][self.gif_b['loc']] - 10, self.animate,'b')
 
+    def registerVote(self, event):
+
+        #play sound if there's an active vote
+        if (event.action=='vote' and self.status == self.STATUS_VOTE_ACTIVE()):
+
+            soundfile='';
+            
+            if (event.team=='a'):
+                soundfile = self.sound_vote_press_a
+            elif (event.team=='b'):
+                soundfile = self.sound_vote_press_b
+
+            if (soundfile != ''):
+                try:
+                    sound = mixer.Sound(soundfile)
+                    sound.play()
+                except:
+                    print "unable to play sound " +soundfile ;
         
 #
 # other utility functions

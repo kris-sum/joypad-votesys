@@ -7,6 +7,9 @@ import pprint
 import os
 from pygame import mixer
 
+class JoypadioEvent(object):
+    pass
+
 class Joypadui:
     'UI controller for joypad voting system'
 
@@ -142,12 +145,12 @@ class Joypadui:
 
         # register some mouse click events
         # allow modification of votes by clicking on the vote numbers - right click to decrease
-        self.c.tag_bind(self.textTeamAscore,'<Button-1>', lambda event: self.registerVote(event,'a'));
-        self.c.tag_bind(self.textTeamAscore,'<Button-2>', lambda event: self.registerVote(event,'-a'));
-        self.c.tag_bind(self.textTeamAscore,'<Button-3>', lambda event: self.registerVote(event,'-a'));
-        self.c.tag_bind(self.textTeamBscore,'<Button-1>', lambda event: self.registerVote(event,'b'));
-        self.c.tag_bind(self.textTeamBscore,'<Button-2>', lambda event: self.registerVote(event,'-b'));
-        self.c.tag_bind(self.textTeamBscore,'<Button-3>', lambda event: self.registerVote(event,'-b'));
+        self.c.tag_bind(self.textTeamAscore,'<Button-1>', lambda event: self.registerVotePress(event,'a'));
+        self.c.tag_bind(self.textTeamAscore,'<Button-2>', lambda event: self.registerVotePress(event,'-a'));
+        self.c.tag_bind(self.textTeamAscore,'<Button-3>', lambda event: self.registerVotePress(event,'-a'));
+        self.c.tag_bind(self.textTeamBscore,'<Button-1>', lambda event: self.registerVotePress(event,'b'));
+        self.c.tag_bind(self.textTeamBscore,'<Button-2>', lambda event: self.registerVotePress(event,'-b'));
+        self.c.tag_bind(self.textTeamBscore,'<Button-3>', lambda event: self.registerVotePress(event,'-b'));
 
         self.status = self.STATUS_VOTE_PENDING()
         self.loadVote(self.currentVoteId - 1)
@@ -159,13 +162,21 @@ class Joypadui:
         self.c.pack()
         
     # register vote - manual overriding by clicking ... 
-    def registerVote(self, event, team):
+    def registerVotePress(self, event, team):
         if (team=='a'):
             self.io.scoreA += 1
+            e = JoypadioEvent()
+            e.action='vote'
+            e.team='a'
+            self.registerVote(e)
         if (team=='-a'):
             self.io.scoreA -= 1            
         if (team=='b'):
             self.io.scoreB += 1
+            e = JoypadioEvent()
+            e.action='vote'
+            e.team='b'
+            self.registerVote(e)			
         if (team=='-b'):
             self.io.scoreB -= 1            
         
@@ -335,6 +346,7 @@ class Joypadui:
             try:
                 sound = mixer.Sound(self.sound_win_team_a)
                 sound.play()
+                print "playing sound " + self.sound_win_team_a;
             except:
                 print "unable to play sound " + self.sound_win_team_a;
         if (team=='b'):
@@ -348,6 +360,7 @@ class Joypadui:
             try:
                 sound = mixer.Sound(self.sound_win_team_b)
                 sound.play()
+                print "playing sound " + self.sound_win_team_b;
             except:
                 print "unable to play sound " + self.sound_win_team_b;            
         if (team == 'a' or team == 'b'):

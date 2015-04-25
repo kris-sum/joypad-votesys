@@ -51,6 +51,8 @@ class Joypadui:
         return 3
     def STATUS_VOTE_RESULTS(self):
         return 4
+    def STATUS_INFOSCREEN(self):
+        return 5
 
     # init using the root Tk() instance and the Joypadio library
     def __init__(self, root, io):
@@ -74,6 +76,8 @@ class Joypadui:
         self.initFilesystem()
         # audio support
         mixer.init()
+        # keyboard support
+        self.registerKeyboardEvents()
         
    
     # find files from the filesystem that will configure the vote system
@@ -152,8 +156,9 @@ class Joypadui:
         self.c.tag_bind(self.textTeamBscore,'<Button-2>', lambda event: self.registerVotePress(event,'-b'));
         self.c.tag_bind(self.textTeamBscore,'<Button-3>', lambda event: self.registerVotePress(event,'-b'));
 
-        self.status = self.STATUS_VOTE_PENDING()
-        self.loadVote(self.currentVoteId - 1)
+        self.status = self.STATUS_INFOSCREEN()
+        # self.loadVote(self.currentVoteId - 1)
+        self.loadInfoScreen()
 
         # start the GUI update routines
         self.updateUI()
@@ -178,7 +183,56 @@ class Joypadui:
             e.team='b'
             self.registerVote(e)			
         if (team=='-b'):
-            self.io.scoreB -= 1            
+            self.io.scoreB -= 1
+
+    def registerKeyboardEvents(self):
+
+        self.root.bind_all('<Key>', self.handleKeyPress);
+
+    def handleKeyPress(self, event):
+        print "Keypressed:",event.char
+        if (event.char=='i' or event.char=='I'):
+            self.loadInfoScreen()
+        if event.char in ['1','2','3','4','5','6','7','8','9','0']:
+            if event.char=='0':
+                self.gotoVote(10)
+            else:
+                self.gotoVote(int(event.char))
+
+        if event.char=='+':
+            self.gotoVote(self.currentVoteId+1)
+            
+        if event.char=='-':
+            self.gotoVote(self.currentVoteId-1)
+            
+    def gotoVote(self,voteNumber):
+
+        if (voteNumber<1 or voteNumber>len(self.voteConfig)):
+            print "Vote number",voteNumber,"is not valid"
+            return
+        
+        print "Interrupting current vote and loading vote",voteNumber
+        self.resetVote()
+        self.currentVoteId=voteNumber
+        self.loadVote(self.currentVoteId - 1)
+        self.countdownTimer()
+        
+    def loadInfoScreen(self):
+
+        print "Showing info screen"
+        self.status=self.STATUS_INFOSCREEN()
+        self.resetCountdownTimer(0)
+        # Set background to bg_pending
+        self.imageBG = Image.open( "resources/bg_infoscreen.jpg")
+        self.photoBG = ImageTk.PhotoImage(self.imageBG)
+        self.c.itemconfig(self.bg, image= self.photoBG)
+
+        hideElements = ['imageGameA','textHeadingA','imageGameB','textHeadingB','textTeamAscore','textTeamBscore','textTimer']
+
+        for guiElement in hideElements:
+            if (hasattr(self,guiElement)):
+                self.c.itemconfig(getattr(self,guiElement), state=HIDDEN)
+                
         
     def loadVote(self, index):
 
@@ -217,7 +271,7 @@ class Joypadui:
             self.animate('b')
 
         #jpg support
-        if self.voteConfig[index]['media_a'].endswith('.jpg'):
+        if (self.voteConfig[index]['media_a'].endswith('.jpg') or self.voteConfig[index]['media_a'].endswith('.jepg')):
             self.photo_a = Image.open(self.voteConfig[index]['media_a'])
             self.photo_aa = ImageTk.PhotoImage(self.photo_a);
             if (not hasattr(self,'imageGameA')):
@@ -225,7 +279,7 @@ class Joypadui:
             else:
                 self.c.itemconfig(self.imageGameA, image=self.photo_aa)
             
-        if self.voteConfig[index]['media_b'].endswith('.jpg'):
+        if (self.voteConfig[index]['media_b'].endswith('.jpg') or self.voteConfig[index]['media_b'].endswith('.jpeg')):
             self.photo_b = Image.open(self.voteConfig[index]['media_b'])
             self.photo_bb = ImageTk.PhotoImage(self.photo_b)
             if (not hasattr(self,'imageGameB')):
@@ -234,21 +288,26 @@ class Joypadui:
                 self.c.itemconfig(self.imageGameB, image=self.photo_bb)
         
         # reset hidden/shown states, position
-        
-        self.c.itemconfig(self.textHeadingA, state=NORMAL)
-        self.c.itemconfig(self.textHeadingB, state=NORMAL)
-        self.c.itemconfig(self.textTimer, state=NORMAL)
+
+        showElements = ['imageGameA','textHeadingA','imageGameB','textHeadingB','textTeamAscore','textTeamBscore','textTimer']
+        for guiElement in showElements:
+            if (hasattr(self, guiElement)):
+                obj = getattr(self, guiElement)
+                self.c.itemconfig(obj, state=NORMAL)
+
         self.c.coords(self.textHeadingA, self.canvas_width/4,self.heading_top)
         self.c.coords(self.textHeadingB, self.canvas_width/4*3,self.heading_top)
         if (hasattr(self,'imageGameA')):
-            self.c.itemconfig(self.imageGameA, state=NORMAL)
             self.c.coords(self.imageGameA, self.canvas_width/4, self.canvas_height/2)
         if (hasattr(self,'imageGameB')): 
-            self.c.itemconfig(self.imageGameB, state=NORMAL)
-            self.c.coords(self.imageGameB, self.canvas_width/4*3, self.canvas_height/2)
+             self.c.coords(self.imageGameB, self.canvas_width/4*3, self.canvas_height/2)
 
-        self.c.itemconfig(self.textTeamAscore, state=HIDDEN)
-        self.c.itemconfig(self.textTeamBscore, state=HIDDEN)
+        hideElements = ['textTeamAscore','textTeamBscore']
+        for guiElement in hideElements:
+            if (hasattr(self, guiElement)):
+                obj = getattr(self,guiElement)
+                self.c.itemconfig(obj, state=HIDDEN)    
+
 
     def openVote(self):
         # set background to load bg_active
@@ -403,7 +462,7 @@ class Joypadui:
         if (self.status == self.STATUS_SUDDEN_DEATH()):
                 self.c.itemconfig(self.textTimer, text= 'SUDDEN DEATH', fill='red', font=self.font_header);
         
-        self.root.after(250,self.updateUI)
+        self.root.after(200,self.updateUI)
         
     def animate(self, target):
         if (target=='a'):

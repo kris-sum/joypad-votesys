@@ -113,7 +113,9 @@ class Joypadui:
                 if (resdir + str(i) + team +'.gif') in files:
                     voteEntity['media_'+team] = resdir + str(i) + team +".gif"
                 if (resdir + str(i) + team +'.jpg') in files:
-                    voteEntity['media_'+team] = resdir + str(i) + team + ".jpg"   
+                    voteEntity['media_'+team] = resdir + str(i) + team + ".jpg"
+                if (resdir + str(i) + team +'.jpeg') in files:
+                    voteEntity['media_'+team] = resdir + str(i) + team + ".jpeg"          
                 if (resdir + str(i) + team +'.mp4') in files:
                     voteEntity['media_'+team] = resdir + str(i) + team + ".mp4"
                     

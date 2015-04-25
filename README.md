@@ -8,7 +8,7 @@ This is python code for running a voting booth, which is powered by a Raspberry 
 PreRequisites:
 apt-get the following:
 ```
-python-tkinter python-imaging python-imaging-tk python-pygame
+python-tk python-imaging python-imaging-tk python-pygame
 ```
 
 HW should have GPIO inputs pulled down, we detect on rising edge.

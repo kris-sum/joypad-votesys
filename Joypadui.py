@@ -6,12 +6,15 @@ import sys
 import pprint
 import os
 from JoypadScreen import JoypadScreen
+from JoypadAudio import JoypadAudio
 from random import randint
 from pygame import mixer
 
 class JoypadioEvent(object):
     pass
-
+class JoypaduiEvent(object):
+    pass
+    
 class Joypadui:
     'UI controller for joypad voting system'
 
@@ -59,6 +62,7 @@ class Joypadui:
         self.root   = root
         self.io     = io
         self.io.subscribe(self.registerVote);
+        self.callbacks = []
         
         self.timeRemaining      = self.timerPrevote
         self.displayTimeout     = self.timeOnVoteResults
@@ -70,6 +74,9 @@ class Joypadui:
 
         #screen loader
         self.screen = JoypadScreen(self)
+        
+        #audio loader
+        self.audio = JoypadAudio(self)
 
         #vote control
         self.currentVoteId  = 1
@@ -338,6 +345,7 @@ class Joypadui:
         else:
             self.timeRemaining -= 1;
             self.idCountdownTimer = self.root.after(1000,self.countdownTimer);
+            self.fire(action = 'countdown', status = self.status, time = self.timeRemaining)
 
     def resetCountdownTimer(self, time):
         if (time != None):
@@ -513,6 +521,18 @@ class Joypadui:
                     sound.play()
                 except:
                     print "unable to play sound " +soundfile ;
+
+    #callback handling
+    def subscribe(self, callback):
+        self.callbacks.append(callback)
+    def fire(self, **attrs):
+        e = JoypaduiEvent()
+        e.source = self;
+        for k, v in attrs.iteritems():
+            setattr(e,k,v)
+        for fn in self.callbacks:
+            fn(e)
+
         
 #
 # other utility functions

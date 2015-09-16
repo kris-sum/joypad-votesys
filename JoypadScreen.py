@@ -15,11 +15,11 @@ class JoypadScreen:
     image_finalscreen           = 'resources/bg_post.jpg' 
 	
     def __init__(self, joypadui):
-	self.joypadui = joypadui
+        self.joypadui = joypadui
 		
 		
     def loadInfoScreen(self):
-	print "Showing info screen"
+        print "Showing info screen. Press 1 to start."
         
         joypadui = self.joypadui
         
@@ -38,7 +38,7 @@ class JoypadScreen:
                 
                 
     def loadFinalScreen(self):
-	print "Showing final screen"
+        print "Showing final screen"
         
         joypadui = self.joypadui
         

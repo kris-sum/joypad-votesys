@@ -5,6 +5,7 @@ import tkFont
 import sys
 import pprint
 import os
+import time
 from JoypadScreen import JoypadScreen
 from JoypadAudio import JoypadAudio
 from random import randint
@@ -22,7 +23,7 @@ class Joypadui:
     timerPrevote = 510 # 8 minutes 30 seconds
 
     # how long to keep the vote open for
-    timerSeconds = 30
+    timerSeconds = 60
     
     # how long to spend on the vote result screen
     timeOnVoteResults = 30
@@ -425,7 +426,6 @@ class Joypadui:
             self.c.coords(self.textHeadingB, self.canvas_width/2,self.heading_top)
             self.c.itemconfig(self.imageGameA, state=HIDDEN)
             self.c.itemconfig(self.textHeadingA, state=HIDDEN)
-           
                
         if (team == 'a' or team == 'b'):
             self.c.itemconfig(self.textTeamAscore, state=HIDDEN)
@@ -433,7 +433,7 @@ class Joypadui:
             self.c.itemconfig(self.textTimer, state=HIDDEN)
             self.fire(action = "announceWinner" , team = team)
             
-        # decerment the timer and run this function again after 1 second
+        # decrement the timer and run this function again after 1 second
         self.displayTimeout -= 1
         self.idAnnounceWinner = self.root.after(1000, self.announceWinner, '-');
 
@@ -459,15 +459,16 @@ class Joypadui:
 
     def updateUI(self):
         'update the UI to display scores every 200ms'
-
+        
         if (self.status == self.STATUS_VOTE_PENDING()):
-            self.c.itemconfig(self.textTimer, text= 'Vote opens in ' + str(self.timeRemaining) + ' secs', fill='white', font=self.font_timer_pending);
+            humanTime = time.strftime('%M:%S', time.gmtime(self.timeRemaining))
+            self.c.itemconfig(self.textTimer, text= 'Vote opens in ' + humanTime , fill='white', font=self.font_timer_pending);
          
         # vote is running
         if (self.status == self.STATUS_VOTE_ACTIVE()):
             self.c.itemconfig(self.textTeamAscore, text = self.io.scoreA)
             self.c.itemconfig(self.textTeamBscore, text = self.io.scoreB)
-            self.c.itemconfig(self.textTimer, text= self.timeRemaining, fill='green', font=self.font_header);
+            self.c.itemconfig(self.textTimer, text = self.timeRemaining, fill='green', font=self.font_header);
          
         self.root.after(200,self.updateUI)
         

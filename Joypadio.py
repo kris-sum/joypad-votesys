@@ -17,8 +17,8 @@ class Joypadio:
         GPIO.setwarnings(False) 
         GPIO.cleanup()
 
-        GPIO.setup(self.GPIOteamA, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.GPIOteamB, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.GPIOteamA, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.GPIOteamB, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         self.scoreA = 0
         self.scoreB = 0

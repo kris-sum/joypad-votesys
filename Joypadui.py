@@ -31,9 +31,6 @@ class Joypadui:
     
     heading_top = 125
     
-    sound_vote_open             = 'resources/vote_open.wav'    
-    sound_win_team_a            = 'resources/win_team_a.wav'
-    sound_win_team_b            = 'resources/win_team_b.wav'
     sound_vote_press_a          = 'resources/vote_press_a.wav'
     sound_vote_press_b          = 'resources/vote_press_b.wav'
 

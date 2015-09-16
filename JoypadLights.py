@@ -15,9 +15,9 @@ class JoypadLights:
         
         #setup the on/off ramps
 		
-		# set brushed mode
-		gb.set_mode(self.gb_board,0,1)
-		gb.set_mode(self.gb_board,1,1)
+	# set brushed mode
+	gb.set_mode(self.gb_board,0,1)
+	gb.set_mode(self.gb_board,1,1)
         
     # joypadui events raised go here
     def eventHandler(self, event):
@@ -25,27 +25,27 @@ class JoypadLights:
             self.onLoadVote(event)        
         if (event.action=="openVote"):
             self.onOpenVote(event)             
-        if (event.action=="countdown"):
-            self.onCountdown(event)
+        #if (event.action=="countdown"):
+            # self.onCountdown(event)
             
         if (event.action=="announceWinner"):
             self.onAnnounceWinner(event)      
         
-	def onLoadVote(self, event):
-		self.lights('a','off')
-		self.lights('b','off')
+    def onLoadVote(self, event):
+	self.lights('a','off')
+	self.lights('b','off')
 		
-	def onOpenVote(self, event):
-		self.lights('a','on')
-		self.lights('b','on')
+    def onOpenVote(self, event):
+	self.lights('a','on')
+	self.lights('b','on')
 	
-	def onAnnounceWinner(self, event):
-		if (event.team == 'a'):
-			self.lights('a','on')
-			self.lights('b','off')
-		else:
-			self.lights('a','off')
-			self.lights('b','on')
+    def onAnnounceWinner(self, event):
+	if (event.team == 'a'):
+	    self.lights('a','on')
+	    self.lights('b','off')
+	else:
+	    self.lights('a','off')
+	    self.lights('b','on')
 		
 	
     # turn the lights on/off for a team

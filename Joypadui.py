@@ -79,6 +79,10 @@ class Joypadui:
         # keyboard support
         self.registerKeyboardEvents()
         
+        # ids (pointers) to timer objects so we can cancel them
+        self.idCountdownTimer = 0; 
+        self.idAnnounceWinner = 0;
+        
    
     # find files from the filesystem that will configure the vote system
     # file structure should be as follows:
@@ -344,7 +348,7 @@ class Joypadui:
             self.timerReached();
         else:
             self.timeRemaining -= 1;
-            self.root.after(1000,self.countdownTimer);
+            self.idCountdownTimer = self.root.after(1000,self.countdownTimer);
 
     def resetCountdownTimer(self, time):
         if (time != None):
@@ -391,10 +395,16 @@ class Joypadui:
     # sets the active timer to zero so that we don't have to wait any longer
     def skipTimer(self):
         mixer.stop()
+        self.root.after_cancel(self.idCountdownTimer)
+        self.root.after_cancel(self.idAnnounceWinner)
+        
         if (self.status == self.STATUS_VOTE_PENDING() or self.status == self.STATUS_VOTE_ACTIVE()):
             self.timeRemaining = 0
+            self.timerReached()
+            return
         if (self.status == self.STATUS_VOTE_RESULTS()):
-            self.displayTimeout = 0
+            self.resetAndLoadNextVote()
+            return
         
         
     def announceWinner(self,team):
@@ -439,10 +449,12 @@ class Joypadui:
             
         # decerment the timer and run this function again after 1 second
         self.displayTimeout -= 1
-        self.root.after(1000, self.announceWinner, '-');
+        self.idAnnounceWinner = self.root.after(1000, self.announceWinner, '-');
 
     def resetVote(self):
         mixer.stop()
+        self.root.after_cancel(self.idCountdownTimer)
+        self.root.after_cancel(self.idAnnounceWinner)
         self.status = self.STATUS_VOTE_PENDING()
         self.resetCountdownTimer(self.timerPrevote)
         self.io.scoreA = 0

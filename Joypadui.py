@@ -8,6 +8,7 @@ import os
 import time
 from JoypadScreen import JoypadScreen
 from JoypadAudio import JoypadAudio
+from JoypadLights import JoypadLights
 from random import randint
 from pygame import mixer
 
@@ -76,8 +77,11 @@ class Joypadui:
         #screen loader
         self.screen = JoypadScreen(self)
         
-        #audio loader
+        #audio controller
         self.audio = JoypadAudio(self)
+        
+        #lighting controller
+        self.lights = JoypadLights(self)
 
         #vote control
         self.currentVoteId  = 1
@@ -230,6 +234,16 @@ class Joypadui:
             self.abortTimers()
             self.screen.loadFinalScreen()
             
+        # manual lighting control - q/w to turn on (shift off)
+        if event.char=='q':
+            self.io.lights('a','on')
+        if event.char=='w':
+            self.io.lights('b','on')       
+        if event.char=='Q':
+            self.io.lights('a','off')                   
+        if event.char=='W':
+            self.io.lights('b','off')  
+            
     def gotoVote(self,voteNumber):
 
         if (voteNumber<1 or voteNumber>len(self.voteConfig)):
@@ -315,7 +329,9 @@ class Joypadui:
         for guiElement in hideElements:
             if (hasattr(self, guiElement)):
                 obj = getattr(self,guiElement)
-                self.c.itemconfig(obj, state=HIDDEN)    
+                self.c.itemconfig(obj, state=HIDDEN)   
+                
+        self.fire(action = "loadVote") 
 
 
     def openVote(self):

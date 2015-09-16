@@ -236,13 +236,13 @@ class Joypadui:
             
         # manual lighting control - q/w to turn on (shift off)
         if event.char=='q':
-            self.io.lights('a','on')
+            self.lights.lights('a','on')
         if event.char=='w':
-            self.io.lights('b','on')       
+            self.lights.lights('b','on')       
         if event.char=='Q':
-            self.io.lights('a','off')                   
+            self.lights.lights('a','off')                   
         if event.char=='W':
-            self.io.lights('b','off')  
+            self.lights.lights('b','off')  
             
     def gotoVote(self,voteNumber):
 

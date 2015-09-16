@@ -11,9 +11,13 @@ class JoypadLights:
         
         self.gb_board = 3
         gb.open_uart(0)
-        print("Found gertbot board version: %d" % gb.get_version(board))
+        print("Found gertbot board version: %d" % gb.get_version(self.gb_board))
         
         #setup the on/off ramps
+		
+		# set brushed mode
+		gb.set_mode(self.gb_board,0,1)
+		gb.set_mode(self.gb_board,1,1)
         
     # joypadui events raised go here
     def eventHandler(self, event):

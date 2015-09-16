@@ -1,6 +1,7 @@
 import	sys
 import	pprint
 import	os
+import time
 import	gertbot2 as gb
 
 class JoypadLights:
@@ -13,11 +14,33 @@ class JoypadLights:
 		gb.open_uart(0)
 		print("Found gertbot board version:	%d"	% gb.get_version(self.gb_board))
 		
-		#setup the on/off ramps
-		
+
 		# set brushed mode
 		gb.set_mode(self.gb_board,0,1)
 		gb.set_mode(self.gb_board,1,1)
+		
+		#setup the on/off ramps
+		gb.set_brush_ramps(self.gb_board, 0,2,5,1)
+		gb.set_brush_ramps(self.gb_board, 1,2,5,1)
+
+		# light init
+		self.lights('a','off')
+		self.lights('b','off')
+		#light check
+		print "Light Check initialising ..."
+		time.sleep(1)
+		print "RED (a) ON"
+                self.lights('a','on')
+                time.sleep(1)
+                print "RED (a) OFF"
+                self.lights('a','off')
+                time.sleep(1)
+                print "BLUE (b) ON"
+                self.lights('b','on')
+                time.sleep(1)
+                print "BLUE (b) OFF"
+                self.lights('b','off')
+                print "Light check finished"
 		
 	# joypadui events raised go here
 	def	eventHandler(self,	event):

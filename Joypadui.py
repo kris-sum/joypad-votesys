@@ -5,6 +5,7 @@ import tkFont
 import sys
 import pprint
 import os
+from JoypadScreen import JoypadScreen
 from random import randint
 from pygame import mixer
 
@@ -47,8 +48,6 @@ class Joypadui:
         return 1
     def STATUS_VOTE_ACTIVE(self):
         return 2    
-    #def STATUS_SUDDEN_DEATH(self):
-    #    return 3
     def STATUS_VOTE_RESULTS(self):
         return 4
     def STATUS_INFOSCREEN(self):
@@ -69,6 +68,8 @@ class Joypadui:
         self.font_header2       = tkFont.Font(family="Helvetica", size=50, weight="bold")
         self.font_timer_pending = tkFont.Font(family="Helvetica", size=30, weight="normal")
 
+        #screen loader
+        self.screen = JoypadScreen(self)
 
         #vote control
         self.currentVoteId  = 1
@@ -164,11 +165,10 @@ class Joypadui:
 
         self.status = self.STATUS_INFOSCREEN()
         # self.loadVote(self.currentVoteId - 1)
-        self.loadInfoScreen()
+        self.screen.loadInfoScreen()
 
         # start the GUI update routines
-        self.updateUI()
-        self.countdownTimer()      
+        self.updateUI()   
 
         self.c.pack()
         
@@ -198,7 +198,8 @@ class Joypadui:
     def handleKeyPress(self, event):
         print "Keypressed:",event.char
         if (event.char=='i' or event.char=='I'):
-            self.loadInfoScreen()
+            self.abortTimers()
+            self.screen.loadInfoScreen()
         if event.char in ['1','2','3','4','5','6','7','8','9','0']:
             if event.char=='0':
                 self.gotoVote(10)
@@ -215,42 +216,30 @@ class Joypadui:
             self.resetVote()
             
         if event.char=='t':
-            self.skipTimer();
+            self.skipTimer()
+            
+        if event.char=='f':
+            self.abortTimers()
+            self.screen.loadFinalScreen()
             
     def gotoVote(self,voteNumber):
 
         if (voteNumber<1 or voteNumber>len(self.voteConfig)):
             print "Vote number",voteNumber,"is not valid"
             return
-        
+        self.abortTimers()
         print "Interrupting current vote and loading vote",voteNumber
         self.resetVote()
         self.currentVoteId=voteNumber
         self.loadVote(self.currentVoteId - 1)
         self.countdownTimer()
         
-    def loadInfoScreen(self):
-
-        print "Showing info screen"
-        self.status=self.STATUS_INFOSCREEN()
-        self.resetCountdownTimer(0)
-        # Set background to bg_pending
-        self.imageBG = Image.open( "resources/bg_infoscreen.jpg")
-        self.photoBG = ImageTk.PhotoImage(self.imageBG)
-        self.c.itemconfig(self.bg, image= self.photoBG)
-
-        hideElements = ['imageGameA','textHeadingA','imageGameB','textHeadingB','textTeamAscore','textTeamBscore','textTimer']
-
-        for guiElement in hideElements:
-            if (hasattr(self,guiElement)):
-                self.c.itemconfig(getattr(self,guiElement), state=HIDDEN)
-                
-        
     def loadVote(self, index):
 
         if (index >= len(self.voteConfig)):
             print "No more votes to load. Going to final screen."
             self.finalScreen()
+            return
 
         print "Loading vote (index "+str(index)+")"
 
@@ -356,6 +345,10 @@ class Joypadui:
         else:
             self.timeRemaining = self.timerSeconds
 
+    def abortTimers(self):
+        self.root.after_cancel(self.idCountdownTimer)
+        self.root.after_cancel(self.idAnnounceWinner)
+            
     def timerReached(self):
         if (self.status==self.STATUS_VOTE_PENDING()):
             self.openVote();
@@ -395,8 +388,7 @@ class Joypadui:
     # sets the active timer to zero so that we don't have to wait any longer
     def skipTimer(self):
         mixer.stop()
-        self.root.after_cancel(self.idCountdownTimer)
-        self.root.after_cancel(self.idAnnounceWinner)
+        self.abortTimers()
         
         if (self.status == self.STATUS_VOTE_PENDING() or self.status == self.STATUS_VOTE_ACTIVE()):
             self.timeRemaining = 0
@@ -468,8 +460,8 @@ class Joypadui:
         self.countdownTimer()
 
     def finalScreen(self):
-        print "Exiting"
-        sys.exit();
+        self.abortTimers()
+        self.screen.loadFinalScreen()
 
     def updateUI(self):
         'update the UI to display scores every 200ms'

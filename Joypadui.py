@@ -22,7 +22,7 @@ class Joypadui:
     timerPrevote = 510 # 8 minutes 30 seconds
 
     # how long to keep the vote open for
-    timerSeconds = 60
+    timerSeconds = 30
     
     # how long to spend on the vote result screen
     timeOnVoteResults = 30
@@ -331,12 +331,8 @@ class Joypadui:
         self.status=self.STATUS_VOTE_ACTIVE()
         self.resetCountdownTimer(self.timerSeconds)
         self.countdownTimer()
-        #play sound
-        try:
-            sound = mixer.Sound(self.sound_vote_open)
-            sound.play()
-        except:
-            print "unable to play sound " + self.sound_vote_open;
+        
+        self.fire(action = 'openVote', status = self.status, time = self.timeRemaining)
         
         
     def countdownTimer(self):
@@ -421,13 +417,7 @@ class Joypadui:
             self.c.coords(self.textHeadingA, self.canvas_width/2,self.heading_top)
             self.c.itemconfig(self.imageGameB, state=HIDDEN)
             self.c.itemconfig(self.textHeadingB, state=HIDDEN)
-            #play sound
-            try:
-                sound = mixer.Sound(self.sound_win_team_a)
-                sound.play()
-                print "playing sound " + self.sound_win_team_a;
-            except:
-                print "unable to play sound " + self.sound_win_team_a;
+         
         if (team=='b'):
             self.c.itemconfig(self.bg, image=self.photoBG_win_b)
             self.displayTimeout = self.timeOnVoteResults      
@@ -435,17 +425,13 @@ class Joypadui:
             self.c.coords(self.textHeadingB, self.canvas_width/2,self.heading_top)
             self.c.itemconfig(self.imageGameA, state=HIDDEN)
             self.c.itemconfig(self.textHeadingA, state=HIDDEN)
-            #play sound
-            try:
-                sound = mixer.Sound(self.sound_win_team_b)
-                sound.play()
-                print "playing sound " + self.sound_win_team_b;
-            except:
-                print "unable to play sound " + self.sound_win_team_b;            
+           
+               
         if (team == 'a' or team == 'b'):
             self.c.itemconfig(self.textTeamAscore, state=HIDDEN)
             self.c.itemconfig(self.textTeamBscore, state=HIDDEN)
             self.c.itemconfig(self.textTimer, state=HIDDEN)
+            self.fire(action = "announceWinner" , team = team)
             
         # decerment the timer and run this function again after 1 second
         self.displayTimeout -= 1

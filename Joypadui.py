@@ -5,6 +5,7 @@ import tkFont
 import sys
 import pprint
 import os
+from random import randint
 from pygame import mixer
 
 class JoypadioEvent(object):
@@ -14,18 +15,17 @@ class Joypadui:
     'UI controller for joypad voting system'
 
     # how long to stay on the pre-voting screen
-    timerPrevote = 1
+    timerPrevote = 510 # 8 minutes 30 seconds
 
     # how long to keep the vote open for
-    timerSeconds = 15
+    timerSeconds = 60
     
     # how long to spend on the vote result screen
-    timeOnVoteResults = 13
+    timeOnVoteResults = 30
     
     heading_top = 125
     
-    sound_vote_open             = 'resources/vote_open.wav'
-    sound_vote_sudden_death     = 'resources/vote_sudden_death.wav'
+    sound_vote_open             = 'resources/vote_open.wav'    
     sound_win_team_a            = 'resources/win_team_a.wav'
     sound_win_team_b            = 'resources/win_team_b.wav'
     sound_vote_press_a          = 'resources/vote_press_a.wav'
@@ -37,7 +37,7 @@ class Joypadui:
     #   0 = initialising
     #   1 = vote is pending
     #   2 = vote is active
-    #   3 = sudden death mode (next vote wins!)
+    #   3 = sudden death mode (next vote wins!) -- deprecated
     #   4 = displaying vote results
     # animations only run in states 1,2,3,4
     status = 0
@@ -47,8 +47,8 @@ class Joypadui:
         return 1
     def STATUS_VOTE_ACTIVE(self):
         return 2    
-    def STATUS_SUDDEN_DEATH(self):
-        return 3
+    #def STATUS_SUDDEN_DEATH(self):
+    #    return 3
     def STATUS_VOTE_RESULTS(self):
         return 4
     def STATUS_INFOSCREEN(self):
@@ -207,6 +207,12 @@ class Joypadui:
         if event.char=='-':
             self.gotoVote(self.currentVoteId-1)
             
+        if event.char=='r':
+            self.resetVote()
+            
+        if event.char=='t':
+            self.skipTimer();
+            
     def gotoVote(self,voteNumber):
 
         if (voteNumber<1 or voteNumber>len(self.voteConfig)):
@@ -359,20 +365,19 @@ class Joypadui:
             print 'Team A: '+str(self.io.scoreA)+' votes for ' + self.voteConfig[self.currentVoteId-1]['heading_a'];
             print 'Team B: '+str(self.io.scoreB)+' votes for ' + self.voteConfig[self.currentVoteId-1]['heading_b'];
 
-        if (self.status==self.STATUS_VOTE_ACTIVE() or self.status==self.STATUS_SUDDEN_DEATH()):
+        if (self.status==self.STATUS_VOTE_ACTIVE() ):
                 
             if (self.io.scoreA == self.io.scoreB):
-                if (self.status != self.STATUS_SUDDEN_DEATH()):
-                    print "Entering SUDDEN DEATH mode"
-                    #play sound
-                    try:
-                        sound = mixer.Sound(self.sound_vote_sudden_death)
-                        sound.play()
-                    except:
-                        print "unable to play sound " + self.sound_vote_sudden_death;
-                self.suddenDeathMode()
-                return
-            elif (self.io.scoreA > self.io.scoreB):
+                # choose a random winner in a draw situation
+                winner = randint(1,2)
+                if (winner==1):
+                    print " ** Draw - randomly making team A win)";
+                    self.io.scoreA += 1;
+                else:
+                    print " ** Draw - randomly making team B win)";
+                    self.io.scoreB += 1; 
+                
+            if (self.io.scoreA > self.io.scoreB):
                 print " ** Team A wins by " + str(self.io.scoreA-self.io.scoreB) +" votes **";
                 print " ** "+ self.voteConfig[self.currentVoteId-1]['heading_a']+ " **";
                 self.announceWinner('a')
@@ -383,12 +388,15 @@ class Joypadui:
                 self.announceWinner('b')
                 return
 
+    # sets the active timer to zero so that we don't have to wait any longer
+    def skipTimer(self):
+        mixer.stop()
+        if (self.status == self.STATUS_VOTE_PENDING() or self.status == self.STATUS_VOTE_ACTIVE()):
+            self.timeRemaining = 0
+        if (self.status == self.STATUS_VOTE_RESULTS()):
+            self.displayTimeout = 0
         
-
-    def suddenDeathMode(self):
-        self.status = self.STATUS_SUDDEN_DEATH()
-        self.root.after(100,self.timerReached);
-
+        
     def announceWinner(self,team):
         self.status = self.STATUS_VOTE_RESULTS()
         if (team=='-'):
@@ -434,12 +442,14 @@ class Joypadui:
         self.root.after(1000, self.announceWinner, '-');
 
     def resetVote(self):
+        mixer.stop()
         self.status = self.STATUS_VOTE_PENDING()
         self.resetCountdownTimer(self.timerPrevote)
         self.io.scoreA = 0
         self.io.scoreB = 0
 
     def resetAndLoadNextVote(self):
+        mixer.stop()
         self.resetVote()
         self.currentVoteId += 1
         self.loadVote(self.currentVoteId - 1)
@@ -460,10 +470,7 @@ class Joypadui:
             self.c.itemconfig(self.textTeamAscore, text = self.io.scoreA)
             self.c.itemconfig(self.textTeamBscore, text = self.io.scoreB)
             self.c.itemconfig(self.textTimer, text= self.timeRemaining, fill='green', font=self.font_header);
-        # sudden death mode
-        if (self.status == self.STATUS_SUDDEN_DEATH()):
-                self.c.itemconfig(self.textTimer, text= 'SUDDEN DEATH', fill='red', font=self.font_header);
-        
+         
         self.root.after(200,self.updateUI)
         
     def animate(self, target):

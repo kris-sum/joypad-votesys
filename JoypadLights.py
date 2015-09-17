@@ -25,8 +25,7 @@ class JoypadLights:
 		gb.set_mode(self.gb_board,1,1)
 		
 		# light init
-		self.lights('a','off')
-		self.lights('b','off')
+		self.off()
 	
 		# setup the ramps to initial values
 		self.setupRamps(0)
@@ -55,26 +54,28 @@ class JoypadLights:
 		print "Light check finished"
 	
 	# joypadui events raised go here
-	def	eventHandler(self,	event):
+	def eventHandler(self,	event):
 		if (event.action=="loadVote"):
 			self.onLoadVote(event)		
 		if (event.action=="openVote"):
 			self.onOpenVote(event)				
 		if (event.action=="countdown"):
 			self.onCountdown(event)
-			
 		if (event.action=="announceWinner"):
-			self.onAnnounceWinner(event)		
+			self.onAnnounceWinner(event)
+		if (event.action=="infoScreen"):
+			self.onInfoScreen(event)
+		if (event.action=="finalScreen"):
+			self.onFinalScreen(event)	
 		
-	def	onLoadVote(self, event):
-		self.lights('a','off')
-		self.lights('b','off')
+	def onLoadVote(self, event):
+		self.off()
 		
-	def	onOpenVote(self, event):
+	def onOpenVote(self, event):
 		self.lights('a','on')
 		self.lights('b','on')
 	
-	def	onAnnounceWinner(self, event):
+	def onAnnounceWinner(self, event):
 		if (event.team == 'a'):
 			self.lights('a','on')
 			self.lights('b','off')
@@ -84,8 +85,17 @@ class JoypadLights:
 			
 	def onCountdown(self, event):
 		if (event.time == 10 and (event.status == self.joypadui.STATUS_VOTE_ACTIVE() or event.status == self.joypadui.STATUS_VOTE_PENDING())):
-			self.pulseLights('a', 5)
-			self.pulseLights('b', 5)
+			self.pulseLights('a', 5, 1000)
+			self.pulseLights('b', 5, 1000)
+
+        def onInfoScreen(self, event):
+                self.off()
+
+        def onFinalScreen(self, event):
+                self.off()
+                self.pulseLights('a',120, 1000)
+                time.sleep(1)
+                self.pulseLights('b',120, 1000)
 		
 	def getChannelFromTeam(self, team):
 		if (team =='a'):
@@ -96,7 +106,7 @@ class JoypadLights:
 		return channel
 	
 	# turn the lights on/off for a team
-	def	lights(self, team, state):
+	def lights(self, team, state):
 
 		if (state=='on'):
 			direction =	1
@@ -105,17 +115,33 @@ class JoypadLights:
 		
 		gb.move_brushed(self.gb_board, self.getChannelFromTeam(team), direction)
 
-	# pulese the lights for a team for a given number of iterations
-	def pulseLights(self, team, number):
+        def off(self):
+                self.pulseLights('a', 0, 0)
+                self.pulseLights('b', 0, 0)
+                gb.emergency_stop()
+
+	# pulse the lights for a team for a given number of iterations
+	def pulseLights(self, team, number, delay):
 		
 		if not hasattr(self.pulseLights, "config"):
 			# it doesn't exist yet, so initialize it
 			# we use a different set of counters and timers for each team
 			self.pulseLights.__func__.config =  { 'a' :  { 'counter':0, 'timer': {} }, 'b':  { 'counter':0, 'timer': {} }  }
+
+                # proces 'off' commands first
+                			
+		if (number == 0):
+			# reset this team's configuration
+                        self.joypadui.root.after_cancel(self.pulseLights.__func__.config[team]['timer'])
+			self.pulseLights.__func__.config[team] = { 'counter':0, 'timer': {} }
+			return
 		
 		if (self.pulseLights.config[team]['counter'] == 0):
 			# setup the ramps to do the fading
-			gb.set_brush_ramps(self.gb_board, self.getChannelFromTeam(team),4,4,1)
+			rampValue = delay / 250
+			if (rampValue < 0.5):
+                                rampValue = 0
+			gb.set_brush_ramps(self.gb_board, self.getChannelFromTeam(team),rampValue,rampValue,1)
 			#print "Lights: ramp config"
 		
 		if (self.pulseLights.config[team]['counter'] % 2 == 0):
@@ -133,6 +159,6 @@ class JoypadLights:
 			return
 	
 		self.pulseLights.__func__.config[team]['counter'] += 1
-		self.pulseLights.__func__.config[team]['timer'] = self.joypadui.root.after(1000,self.pulseLights, team, number);
+		self.pulseLights.__func__.config[team]['timer'] = self.joypadui.root.after(delay,self.pulseLights, team, number, delay);
 	 	
 	   

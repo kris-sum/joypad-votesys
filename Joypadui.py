@@ -181,6 +181,7 @@ class Joypadui:
         self.status = self.STATUS_INFOSCREEN()
         # self.loadVote(self.currentVoteId - 1)
         self.screen.loadInfoScreen()
+        self.fire(action = "infoScreen") 
 
         # start the GUI update routines
         self.updateUI()   
@@ -215,6 +216,7 @@ class Joypadui:
         if (event.char=='i' or event.char=='I'):
             self.abortTimers()
             self.screen.loadInfoScreen()
+            self.fire(action = "infoScreen")
         if event.char in ['1','2','3','4','5','6','7','8','9','0']:
             if event.char=='0':
                 self.gotoVote(10)
@@ -236,6 +238,7 @@ class Joypadui:
         if event.char=='f':
             self.abortTimers()
             self.screen.loadFinalScreen()
+            self.fire(action = "finalScreen")
             
         # manual lighting control - q/w to turn on (shift off)
         if event.char=='q':
@@ -475,6 +478,7 @@ class Joypadui:
     def finalScreen(self):
         self.abortTimers()
         self.screen.loadFinalScreen()
+        self.fire(action = "finalScreen") 
 
     def updateUI(self):
         'update the UI to display scores every 200ms'

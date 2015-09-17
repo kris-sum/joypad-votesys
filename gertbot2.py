@@ -264,3 +264,13 @@ def pwm_brushed(board,channel,freq,dc) :
     dc_ls = i & 0x0FF
     wrtbuf = [PRE, CMD_LINDC, dest, dc_ms, dc_ls, POST]
     os.write(filehandle,bytearray(wrtbuf))
+
+# Stop all motors 
+def stop_all() :
+  wrtbuf = [0xA0, CMD_STOPALL, CMD_STOP2ND, POST]
+  os.write(filehandle,bytearray(wrtbuf))    
+
+# Power down all motors
+def emergency_stop() :
+  wrtbuf = [0xA0, CMD_PWR_OFF, CMD_STOP2ND, POST]
+  os.write(filehandle,bytearray(wrtbuf))

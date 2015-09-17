@@ -22,12 +22,11 @@ class Joypadui:
 
     # how long to stay on the pre-voting screen
     timerPrevote = 510 # 8 minutes 30 seconds
-
     # how long to keep the vote open for
     timerSeconds = 60
-    
     # how long to spend on the vote result screen
     timeOnVoteResults = 30
+    # therfore total time is 600 seconds (10 minutes) per vote loop
     
     heading_top = 125
     

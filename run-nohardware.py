@@ -6,7 +6,7 @@ from JoypadioNoHardware import Joypadio
 root = Tk()
 joyio = Joypadio()
 
-joypad = Joypadui(root,joyio)
+joypad = Joypadui(root,joyio, { 'lights': False } )
 
 joypad.initGui()
 

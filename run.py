@@ -7,7 +7,7 @@ from Joypadio import Joypadio
 root = Tk()
 joyio = Joypadio()
 
-joypad = Joypadui(root,joyio)
+joypad = Joypadui(root,joyio, {} )
 
 joypad.initGui()
 

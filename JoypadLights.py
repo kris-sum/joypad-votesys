@@ -2,7 +2,6 @@ import	sys
 import	pprint
 import	os
 import time
-import	gertbot2 as gb
 
 class JoypadLights:
 	
@@ -11,6 +10,9 @@ class JoypadLights:
 		self.joypadui.subscribe(self.eventHandler)
 		
 		self.gb_board	=	3
+		
+		import gertbot2 as gb
+		
 		gb.open_uart(0)
 		print("Found gertbot board version:	%d"	% gb.get_version(self.gb_board))
 		
@@ -85,4 +87,17 @@ class JoypadLights:
 			direction =	0
 		
 		gb.move_brushed(self.gb_board, channel, direction)
-		
+
+	# pulese the lights for a team for a given number of iterations
+	def pulseLights(self,team,number):
+		if not hasattr(pulseLights, "counter"):
+			pulseLights.counter = 0  # it doesn't exist yet, so initialize it
+		if not hasattr(pulseLights, "timer"):
+			pulseLights.timer = {}	 
+			 
+		if (number >pulseLights.counter):
+			return
+	
+		pulseLights.timer = self.joypadui.root.after(1000,self.pulseLights, team, number);
+	 	pulseLights.counter += 1
+	   

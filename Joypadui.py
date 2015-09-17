@@ -46,6 +46,9 @@ class Joypadui:
     status = 0
     status_for_animations = [1,2,3,4]
     
+    # default config options
+    config = { 'audio' : True, 'lights': True }
+    
     def STATUS_VOTE_PENDING(self):
         return 1
     def STATUS_VOTE_ACTIVE(self):
@@ -56,10 +59,12 @@ class Joypadui:
         return 5
 
     # init using the root Tk() instance and the Joypadio library
-    def __init__(self, root, io):
-        print 'JoypadUI v1.1 initialising'
+    def __init__(self, root, io, config):
+        print 'JoypadUI initialising'
         self.root   = root
         self.io     = io
+        self.config.update(config)
+
         self.io.subscribe(self.registerVote);
         self.callbacks = []
         
@@ -74,11 +79,13 @@ class Joypadui:
         #screen loader
         self.screen = JoypadScreen(self)
         
-        #audio controller
-        self.audio = JoypadAudio(self)
+        if (self.config['audio'] == True):
+            #audio controller
+            self.audio = JoypadAudio(self)
         
-        #lighting controller
-        self.lights = JoypadLights(self)
+        if (self.config['lights'] == True):
+            #lighting controller
+            self.lights = JoypadLights(self)
 
         #vote control
         self.currentVoteId  = 1

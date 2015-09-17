@@ -8,7 +8,6 @@ import os
 import time
 from JoypadScreen import JoypadScreen
 from JoypadAudio import JoypadAudio
-from JoypadLights import JoypadLights
 from random import randint
 from pygame import mixer
 
@@ -83,6 +82,7 @@ class Joypadui:
             self.audio = JoypadAudio(self)
         
         if (self.config['lights'] == True):
+            from JoypadLights import JoypadLights
             #lighting controller
             self.lights = JoypadLights(self)
 

@@ -25,7 +25,7 @@ class JoypadAudio:
             self.onAnnounceWinner(event)      
             
     def onCountdown(self, event):
-        if (event.time == 5 ):
+        if (event.time == 5 and (event.status == self.joypadui.STATUS_VOTE_ACTIVE() or event.status == self.joypadui.STATUS_VOTE_PENDING())):
             try:
                 sound = mixer.Sound(self.sound_5secondsleft)
                 sound.play()

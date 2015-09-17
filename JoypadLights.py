@@ -115,7 +115,7 @@ class JoypadLights:
 		
 		if (self.pulseLights.config[team]['counter'] == 0):
 			# setup the ramps to do the fading
-			gb.set_brush_ramps(self.gb_board, self.getChannelFromTeam(team),2,2,1)
+			gb.set_brush_ramps(self.gb_board, self.getChannelFromTeam(team),4,4,1)
 			#print "Lights: ramp config"
 		
 		if (self.pulseLights.config[team]['counter'] % 2 == 0):
